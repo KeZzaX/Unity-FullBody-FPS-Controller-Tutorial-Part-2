@@ -56,7 +56,7 @@ public class Locomotion : MonoBehaviour
     {
         m_groundRayLenght = (m_collider.height * 0.5f) + m_offsetFloorY;
 
-        if (FloorRaycasts(0, 0, m_groundRayLenght) == Vector3.zero)
+        if (FloorRaycasts(0, 0, m_groundRayLenght).transform == null)
         {
             m_gravity += (Vector3.up * Physics.gravity.y * Time.fixedDeltaTime);
         }
@@ -67,7 +67,7 @@ public class Locomotion : MonoBehaviour
 
         m_floorMovement = new Vector3(m_rb.position.x, FindFloor().y, m_rb.position.z);
 
-        if (FloorRaycasts(0, 0, m_groundRayLenght) != Vector3.zero && m_floorMovement != m_rb.position)
+        if (FloorRaycasts(0, 0, m_groundRayLenght).transform != null && m_floorMovement != m_rb.position)
         {
             m_rb.MovePosition(m_floorMovement);
             m_gravity.y = 0;
@@ -79,33 +79,28 @@ public class Locomotion : MonoBehaviour
         float raycastWidth = 0.25f;
         int floorAverage = 1;
 
-        m_combinedRaycast = FloorRaycasts(0, 0, m_groundRayLenght);
+        m_combinedRaycast = FloorRaycasts(0, 0, m_groundRayLenght).point;
         floorAverage += (GetFloorAverage(raycastWidth, 0) + GetFloorAverage(-raycastWidth, 0) + GetFloorAverage(0, raycastWidth) + GetFloorAverage(0, -raycastWidth));
         return m_combinedRaycast / floorAverage;
     }
 
-    private Vector3 FloorRaycasts(float t_offsetx, float t_offsetz, float t_raycastLength)
+    private RaycastHit FloorRaycasts(float t_offsetx, float t_offsetz, float t_raycastLength)
     {
         RaycastHit hit;
 
         m_raycastFloorPos = transform.TransformPoint(0 + t_offsetx, m_collider.center.y, 0 + t_offsetz);
         //Debug.DrawRay(m_raycastFloorPos, Vector3.down * m_groundRayLenght, Color.magenta);
 
-        if (Physics.Raycast(m_raycastFloorPos, -Vector3.up, out hit, t_raycastLength))
-        {
-            return hit.point;
-        }
-        else
-        {
-            return Vector3.zero;
-        }
+        Physics.Raycast(m_raycastFloorPos, -Vector3.up, out hit, t_raycastLength);
+
+        return hit;
     }
 
     private int GetFloorAverage(float t_offsetx, float t_offsetz)
     {
-        if (FloorRaycasts(t_offsetx, t_offsetz, m_groundRayLenght) != Vector3.zero)
+        if (FloorRaycasts(t_offsetx, t_offsetz, m_groundRayLenght).transform != null)
         {
-            m_combinedRaycast += FloorRaycasts(t_offsetx, t_offsetz, m_groundRayLenght);
+            m_combinedRaycast += FloorRaycasts(t_offsetx, t_offsetz, m_groundRayLenght).point;
             return 1;
         }
         else
